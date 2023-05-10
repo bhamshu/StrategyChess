@@ -13,7 +13,10 @@ RSpec.describe Api::V1::PlayerController, type: :controller do
     end
 
     context 'when the player name is already taken' do
-      before { Player.create(uniq_pub_name: uniq_pub_name) }
+      before { 
+        g = Game.create()
+        Player.create(uniq_pub_name: uniq_pub_name, games_id: g.id) 
+      }
 
       it 'returns a 406 error' do
         post :register_player, params: { uniq_pub_name: uniq_pub_name }
