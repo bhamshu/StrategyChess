@@ -1,7 +1,7 @@
-require "utils.rb"
+require File.join(__dir__, "./utils")
 
 INIT_STATE_STR={
-    "stage": Constants.Strategise,
+    "stage": Constants::Strategise,
     "main_board": [
         "None", "None", "None", "None", "None", "None", "None", "None",
         "None", "None", "None", "None", "None", "None", "None", "None",
@@ -58,7 +58,7 @@ class Api::V1::PlayerController < ApplicationController
         game = Game.find_by(id: player.games_id)
         hash_state = JSON.parse(game.state)
 
-        unless hash_state["stage"] == Constants.Strategise
+        unless hash_state["stage"] == Constants::Strategise
             render json: { error: 'Dont call this method, player state is ' + hash_state["stage"] }, status: 400
             return
         end
@@ -70,7 +70,7 @@ class Api::V1::PlayerController < ApplicationController
 
         hash_state["main_board"] = chosen_main_board
         hash_state["side_drawers"] = ["None"]*16
-        hash_state["stage"] = Constants.PartnerSelection
+        hash_state["stage"] = Constants::PartnerSelection
         game.state = hash_state.to_json
         game.save
 
@@ -85,7 +85,7 @@ class Api::V1::PlayerController < ApplicationController
         partner = Player.find_by(uniq_pub_name: player_pub_name)
         partner_stage = JSON.parse(Game.find_by(id: partner.games_id).state)["stage"]
         # TODO: make atomic
-        unless stage == Constants.PartnerSelection
+        unless stage == Constants::PartnerSelection
             render json: { error: 'Partner stage incompatible: ' + partner_stage }, status: 404
             return
         end
@@ -95,7 +95,7 @@ class Api::V1::PlayerController < ApplicationController
         end
         ActiveRequest.new(from: my_id, to: partner.id).save
         Utils.send_pusher_msg_to_player(partner_id, "challenge_request", my_pub_name)
-        render json: {status: "success"} status: 200
+        render json: {status: "success"}, status: 200
     end
 
     def accept_request_and_start_game
@@ -104,27 +104,27 @@ class Api::V1::PlayerController < ApplicationController
         partner = Player.find_by(uniq_pub_name: partner_pub_name)
         unless ActiveRequest.where(from: partner.id, to: my_id).empty?
             # the other player hasn't sent a request, how can you accept
-            render json: {error: "Player has not sent a request. Can't accept. Send them a request if you want to play with them."} status: 403
+            render json: {error: "Player has not sent a request. Can't accept. Send them a request if you want to play with them."}, status: 403
             return
         end
         # TODO: maybe use joins to get game in single query. In all methods.
         partner_game = Game.find_by(id: partner.games_id)
         partner_game_state = JSON.parse(partner_game.state) 
-        unless partner_game_state["stage"] == Constants.PartnerSelection
+        unless partner_game_state["stage"] == Constants::PartnerSelection
             # the other player hasn't sent a request, how can you accept
-            render json: {error: "Too late, they've paired up with someone else."} status: 404
+            render json: {error: "Too late, they've paired up with someone else."}, status: 404
             return
         end
-        partner_game_state["stage"] = Constants.GamePlay
+        partner_game_state["stage"] = Constants::GamePlay
         me = Player.find_by(id: my_id)
         my_game = Game.find_by(id: me.games_id)
         my_game_state = JSON.parse(my_game.state)
         # This check is down here because it's frivolous - frontend won't
         # make this request. It's just an extra check for malicious use
         # Above we have checks which are way more likely to occur
-        unless my_game_state["stage"] == Constants.PartnerSelection
+        unless my_game_state["stage"] == Constants::PartnerSelection
             # the other player hasn't sent a request, how can you accept
-            render json: {error: "Go strategise, or play with your partner depending on your stage which is " + my_game_state["stage"]} status: 403
+            render json: {error: "Go strategise, or play with your partner depending on your stage which is " + my_game_state["stage"]}, status: 403
             return
         end
         
@@ -178,7 +178,7 @@ class Api::V1::PlayerController < ApplicationController
         # Reverse the board
         hash_state = JSON.parse(game.state)
 
-        unless hash_state["stage"] == Constants.GamePlay
+        unless hash_state["stage"] == Constants::GamePlay
             render json: { error: "Game not in play, can't move" }, status: 403
         end
 

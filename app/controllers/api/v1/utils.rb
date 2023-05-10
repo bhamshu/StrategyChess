@@ -4,7 +4,7 @@ class Constants
     @@pusher_client = nil
     def self.pusher_client
        unless @@pusher_client
-          @@pusher_client =  = Pusher::Client.new(
+          @@pusher_client = Pusher::Client.new(
             app_id: '1598484',
             key: ENV.fetch("PUSHER_APP_KEY"),
             secret: ENV.fetch("PUSHER_SECRET"),
@@ -36,9 +36,9 @@ module Utils
 
     def Utils.get_turn_str(my_id, turn_player_id)
         if my_id == turn_player_id
-            return Constants.MyTurn
+            return Constants::MyTurn
         else
-            return Constants.OtherPersonsTurn
+            return Constants::OtherPersonsTurn
         end
     end
 end
