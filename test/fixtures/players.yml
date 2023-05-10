@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  games: one
+  uniq_pub_name: MyString
+
+two:
+  games: two
+  uniq_pub_name: MyString
