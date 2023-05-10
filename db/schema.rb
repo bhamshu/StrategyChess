@@ -10,10 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_05_10_160704) do
+ActiveRecord::Schema.define(version: 2023_05_10_203301) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "active_requests", force: :cascade do |t|
+    t.uuid "from_id", null: false
+    t.uuid "to_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["from_id"], name: "index_active_requests_on_from_id"
+    t.index ["to_id"], name: "index_active_requests_on_to_id"
+  end
 
   create_table "games", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.text "state"
@@ -31,5 +40,7 @@ ActiveRecord::Schema.define(version: 2023_05_10_160704) do
     t.index ["uniq_pub_name"], name: "index_players_on_uniq_pub_name", unique: true
   end
 
+  add_foreign_key "active_requests", "players", column: "from_id"
+  add_foreign_key "active_requests", "players", column: "to_id"
   add_foreign_key "players", "games", column: "games_id"
 end

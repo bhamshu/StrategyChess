@@ -15,17 +15,30 @@ class Constants
        @@pusher_client
     end
 
+    # Game Stages
     Strategise = "Strategise"
     PartnerSelection = "PartnerSelection"
     GamePlay = "GamePlay"
     GameOver = "GameOver"
+    
+    # Turn Strings
+    MyTurn = "MyTurn"
+    OtherPersonsTurn = "OtherPersonsTurn"
 end
 
 module Utils
-    def send_pusher_msg_to_player(player_id, event, message)
+    def Utils.send_pusher_msg_to_player(player_id, event, message)
         Constants.pusher_client.trigger(
             player_id, event, {
             message: message
-        })      
-    end 
+        })
+    end
+
+    def Utils.get_turn_str(my_id, turn_player_id)
+        if my_id == turn_player_id
+            return Constants.MyTurn
+        else
+            return Constants.OtherPersonsTurn
+        end
+    end
 end
