@@ -177,6 +177,11 @@ class Api::V1::PlayerController < ApplicationController
         
         # Reverse the board
         hash_state = JSON.parse(game.state)
+
+        unless hash_state["stage"] == Constants.GamePlay
+            render json: { error: "Game not in play, can't move" }, status: 403
+        end
+
         hash_state["main_board"] = hash_state["main_board"].reverse
         hash_state["side_board"] = hash_state["side_board"].reverse
         game.state = hash_state.to_json
