@@ -1,5 +1,7 @@
+require "utils.rb"
+
 INIT_STATE_STR={
-    "stage": "Strategise",
+    "stage": Constants.Strategise,
     "main_board": [
         "None", "None", "None", "None", "None", "None", "None", "None",
         "None", "None", "None", "None", "None", "None", "None", "None",
@@ -46,14 +48,15 @@ class Api::V1::PlayerController < ApplicationController
         render json: {uniq_pub_name: uniq_pub_name, id: player.id, state: JSON.parse(INIT_STATE_STR)}
     end
 
-    def get_player_game_state
-        id = params[:id]
-        player = Player.find_by(id: id)
-        game = Game.find_by(id: player.games_id)
-        render json: {uniq_pub_name: player.uniq_pub_name, id: player.id, state: JSON.parse(game.state)}
-    end
+    # Just for testing
+    # def get_player_game_state
+    #     id = params[:id]
+    #     player = Player.find_by(id: id)
+    #     game = Game.find_by(id: player.games_id)
+    #     render json: {uniq_pub_name: player.uniq_pub_name, id: player.id, state: JSON.parse(game.state)}
+    # end
 
-    def player_is_ready
+    def mark_player_ready
         # Player sends their board state to the server and requests to be marked ready
         id = params[:id]
         chosen_main_board = params[:main_board]
@@ -63,7 +66,7 @@ class Api::V1::PlayerController < ApplicationController
         game = Game.find_by(id: player.games_id)
         json_state = JSON.parse(game.state)
 
-        unless json_state["stage"] == "Strategise"
+        unless json_state["stage"] == Constants.Strategise
             render json: { error: 'Dont call this method, player state is ' + json_state["stage"] }, status: 400
         end
 
@@ -86,8 +89,13 @@ class Api::V1::PlayerController < ApplicationController
     def send_request_to_player
         my_id = params[:id]
         partner_pub_name = params[:partner_pub_name]
-        # Check if partner is ready
-        # Broadcast request to partner
+        partner = Player.find_by(uniq_pub_name: player_pub_name)
+        partner_stage = JSON.parse(Game.find_by(id: partner.games_id).state)["stage"]
+        unless stage == Constants.PartnerSelection
+            render json: { error: 'Partner stage incompatible: ' + partner_stage }, status: 404
+        end
+        Utils.send_pusher_msg_to_player(partner_id, "challenge_request", my_pub_name)
+        render json: {status: "success"} status: 200
     end
 
     def accept_request_and_start_game
