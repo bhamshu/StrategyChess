@@ -1,16 +1,16 @@
 INIT_STATE_STR={
     "stage": "strategising",
-    "main_board":[
-        ["None", "None", "None", "None"],
-        ["None", "None", "None", "None"],
-        ["None", "None", "None", "None"],
-        ["None", "None", "None", "None"],
+    "main_board": [
+        "None", "None", "None", "None", "None", "None", "None", "None",
+        "None", "None", "None", "None", "None", "None", "None", "None",
+        "None", "None", "None", "None", "None", "None", "None", "None",
+        "None", "None", "None", "None", "None", "None", "None", "None",
     ],
     "side_drawers": [
-        ["King", "Queen", "Rook", "Rook"],
-        ["Bishop", "Bishop", "Knight", "Knight"],
-        ["Pawn", "Pawn", "Pawn", "Pawn"],
-        ["Pawn", "Pawn", "Pawn", "Pawn"],
+        "King", "Queen",     "Rook",   "Rook", 
+        "Bishop", "Bishop",  "Knight", "Knight",
+        "Pawn", "Pawn",      "Pawn",   "Pawn", 
+        "Pawn", "Pawn",      "Pawn",   "Pawn",
     ],
 }.to_json
 
@@ -52,4 +52,5 @@ class Api::V1::PlayerController < ApplicationController
         game = Game.find_by(id: player.games_id)
         render json: {uniq_pub_name: player.uniq_pub_name, id: player.id, state: JSON.parse(game.state)}
     end
+
 end
