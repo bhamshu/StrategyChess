@@ -48,7 +48,6 @@ module Utils
     def Utils.send_pusher_msg_to_player(player_id, event, message)
         if Rails.env.test?
             p "returning from send_pusher_msg_to_player"
-            p player_id, event, message
             return 
         end
         Constants.pusher_client.trigger(

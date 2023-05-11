@@ -66,19 +66,22 @@ class Api::V1::PlayerController < ApplicationController
     def send_request_to_player
         my_id = params[:id]
         partner_pub_name = params[:partner_pub_name]
-        partner = Player.find_by(uniq_pub_name: player_pub_name)
+        partner = Player.find_by(uniq_pub_name: partner_pub_name)
         partner_stage = JSON.parse(Game.find_by(id: partner.games_id).state)["stage"]
         # TODO: make atomic
-        unless stage == Constants::PartnerSelection
+
+        unless partner_stage == Constants::PartnerSelection
             render json: { error: 'Partner stage incompatible: ' + partner_stage }, status: 404
             return
         end
-        unless ActiveRequest.where(from: partner.id, to: my_id).empty?
+
+        unless ActiveRequest.where(:from_id=> partner.id, :to_id=> my_id).empty?
             # the other player has also sent a request to me
             # TODO: redirect to accept_request_and_start_game
         end
-        ActiveRequest.new(from: my_id, to: partner.id).save
-        Utils.send_pusher_msg_to_player(partner_id, "challenge_request", my_pub_name)
+        ActiveRequest.new(from_id: my_id, to_id: partner.id).save
+        my_pub_name = Player.find_by(id: my_id).uniq_pub_name
+        Utils.send_pusher_msg_to_player(partner.id, "challenge_request", my_pub_name)
         render json: {status: "success"}, status: 200
     end
 

@@ -84,4 +84,62 @@ RSpec.describe Api::V1::PlayerController, type: :controller do
       end
     end
   end
+  describe Api::V1::PlayerController do
+    describe "#send_request_to_player" do
+      let(:uniq_pub_name) { 'test_player' }
+      let(:partner_pub_name) { 'partner_player' }
+      let!(:player1game) { Game.create(state: Constants::INIT_STATE_STR) }
+      let!(:player1) { Player.create(games_id: player1game.id, uniq_pub_name:uniq_pub_name) }
+      let!(:player2game) { Game.create(state: Constants::INIT_STATE_STR) }
+      let!(:player2) { Player.create(games_id: player2game.id, uniq_pub_name:partner_pub_name) }
+
+      context "when player's stage is not PartnerSelection" do
+        before do
+          game = Game.find_by(id: player1.games_id)
+          game.state = { "stage" => "SomeOtherStage" }.to_json
+          game.save!
+        end
+  
+        it "returns an error and does not create an active request" do
+          post :send_request_to_player, params: { id: player1.id, partner_pub_name: partner_pub_name }
+
+          response_body = JSON.parse(response.body)
+          expect(response).to have_http_status(:not_found)
+          expect(response_body["error"]).to include("Partner stage incompatible")
+          expect(ActiveRequest.where(from_id: player1.id, to_id: player2.id)).to be_empty
+        end
+      end
+  
+      # TODO: implement this feature
+      # context "when partner has already sent a request to player" do
+      #   before do
+      #     ActiveRequest.create(from: partner.id, to: my_id)
+      #   end
+  
+      #   it "redirects to accept_request_and_start_game action" do
+      #     post :send_request_to_player, params: { id: my_id, partner_pub_name: partner_pub_name }
+  
+      #     expect(response).to redirect_to("/api/v1/accept_request_and_start_game/#{my_id}/#{partner.id}")
+      #   end
+      # end
+  
+      context "when player and partner are both in PartnerSelection stage" do
+        before do
+          state = Constants::INIT_STATE
+          state["stage"] = Constants::PartnerSelection
+          player2game.state = state.to_json()
+          player2game.save
+
+          player1game.state = state.to_json()
+          player1game.save
+        end
+        it "creates a new active request" do
+          post :send_request_to_player, params: { id: player1.id, partner_pub_name: partner_pub_name }
+
+          expect(response).to have_http_status(:ok)
+          expect(ActiveRequest.where(from_id: player1.id, to_id: player2.id)).not_to be_empty
+        end
+      end
+    end
+  end  
 end
