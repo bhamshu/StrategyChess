@@ -1,22 +1,5 @@
 require File.join(__dir__, "./utils")
 
-INIT_STATE_STR={
-    "stage": Constants::Strategise,
-    "main_board": [
-        "None", "None", "None", "None", "None", "None", "None", "None",
-        "None", "None", "None", "None", "None", "None", "None", "None",
-        "None", "None", "None", "None", "None", "None", "None", "None",
-        "None", "None", "None", "None", "None", "None", "None", "None",
-    ],
-    "side_drawers": [
-        "King", "Queen",     "Rook",   "Rook", 
-        "Bishop", "Bishop",  "Knight", "Knight",
-        "Pawn", "Pawn",      "Pawn",   "Pawn", 
-        "Pawn", "Pawn",      "Pawn",   "Pawn",
-    ],
-}.to_json
-
-
 class Api::V1::PlayerController < ApplicationController
     def register_player
         uniq_pub_name = params[:uniq_pub_name]
@@ -25,7 +8,7 @@ class Api::V1::PlayerController < ApplicationController
             return
         end
 
-        game = Game.new(state: INIT_STATE_STR)
+        game = Game.new(state: Constants::INIT_STATE_STR)
         # Saving here so that there's as little gap between the (ideally)
         # atomic operations of checking player unique pub name and saving it 
         game.save
@@ -45,9 +28,10 @@ class Api::V1::PlayerController < ApplicationController
             return
         end
 
-        render json: {uniq_pub_name: uniq_pub_name, id: player.id, state: JSON.parse(INIT_STATE_STR)}
+        render json: {uniq_pub_name: uniq_pub_name, id: player.id, state: Constants::INIT_STATE}
     end
 
+    # TODO: Validate the integrity of main_board here and after every round.
     def mark_player_ready
         # Player sends their board state to the server and requests to be marked ready
         id = params[:id]
@@ -59,12 +43,12 @@ class Api::V1::PlayerController < ApplicationController
         hash_state = JSON.parse(game.state)
 
         unless hash_state["stage"] == Constants::Strategise
-            render json: { error: 'Dont call this method, player state is ' + hash_state["stage"] }, status: 400
+            render json: { error: 'Dont call this method, player state is ' + hash_state["stage"] }, status: 403
             return
         end
 
         unless side_drawers.to_set == Set["None"]
-            render json: { error: 'Player not ready yet' }, status: 400
+            render json: { error: 'Player not ready yet' }, status: 403
             return
         end
 

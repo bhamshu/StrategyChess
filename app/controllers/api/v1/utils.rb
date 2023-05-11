@@ -24,10 +24,33 @@ class Constants
     # Turn Strings
     MyTurn = "MyTurn"
     OtherPersonsTurn = "OtherPersonsTurn"
+
+
+    INIT_STATE={
+        "stage": Constants::Strategise,
+        "main_board": [
+            "None", "None", "None", "None", "None", "None", "None", "None",
+            "None", "None", "None", "None", "None", "None", "None", "None",
+            "None", "None", "None", "None", "None", "None", "None", "None",
+            "None", "None", "None", "None", "None", "None", "None", "None",
+        ],
+        "side_drawers": [
+            "King", "Queen",     "Rook",   "Rook", 
+            "Bishop", "Bishop",  "Knight", "Knight",
+            "Pawn", "Pawn",      "Pawn",   "Pawn", 
+            "Pawn", "Pawn",      "Pawn",   "Pawn",
+        ],
+    }
+    INIT_STATE_STR = INIT_STATE.to_json
 end
 
 module Utils
     def Utils.send_pusher_msg_to_player(player_id, event, message)
+        if Rails.env.test?
+            p "returning from send_pusher_msg_to_player"
+            p player_id, event, message
+            return 
+        end
         Constants.pusher_client.trigger(
             player_id, event, {
             message: message
