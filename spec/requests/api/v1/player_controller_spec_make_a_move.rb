@@ -7,7 +7,7 @@ RSpec.describe Api::V1::PlayerController, type: :controller do
     let!(:player2) { Player.create(games_id: game.id, uniq_pub_name:"p2") }
 
     before do
-      game.update_attributes(state: '{"stage":"GamePlay","main_board":["C","D","None","King"],"side_board":["King","None","Queen","None","None","None"]}', turn: player1.id)
+      game.update_attributes(state: '{"stage":"GamePlay","main_board":["C","D","None","King"],"side_drawers":["King","None","Queen","None","None","None"]}', turn: player1.id)
     end
 
     context "when not player's turn" do
@@ -28,7 +28,7 @@ RSpec.describe Api::V1::PlayerController, type: :controller do
 
     context "when game is not in play" do
       it "returns a 403 error" do
-        game.update_attributes(state: '{"stage":"partner_selection","main_board":["C","D","None","None"],"side_board":["None","None","None","None","None","None"]}')
+        game.update_attributes(state: '{"stage":"partner_selection","main_board":["C","D","None","None"],"side_drawers":["None","None","None","None","None","None"]}')
         post :make_a_move, params: { id: player1.id, init_index: 0, final_index: 8 }
         expect(response).to have_http_status(403)
         expect(JSON.parse(response.body)).to eq({ "error" => "Game not in play, can't move" })
@@ -39,12 +39,12 @@ RSpec.describe Api::V1::PlayerController, type: :controller do
       it "updates the game state and returns correct state" do
         post :make_a_move, params: { id: player1.id, init_index: 0, final_index: 1 }
         expect(response).to have_http_status(200)
-        expect(JSON.parse(response.body)).to eq({"main_board"=>["None", "C", "None", "King"], "side_board"=>["King", "D", "Queen", "None", "None", "None"], "game_over"=>false})
+        expect(JSON.parse(response.body)).to eq({"main_board"=>["None", "C", "None", "King"], "side_drawers"=>["King", "D", "Queen", "None", "None", "None"], "game_over"=>false})
 
         game.reload
         expect(game.turn).to eq(player2.id)
         # Boards have been inverted 
-        expect(game.state).to eq('{"stage":"GamePlay","main_board":["King","None","C","None"],"side_board":["None","None","None","Queen","D","King"]}')
+        expect(game.state).to eq('{"stage":"GamePlay","main_board":["King","None","C","None"],"side_drawers":["None","None","None","Queen","D","King"]}')
         
       end
     end
@@ -52,12 +52,12 @@ RSpec.describe Api::V1::PlayerController, type: :controller do
       it "updates the game state and returns game over true" do
         post :make_a_move, params: { id: player1.id, init_index: 0, final_index: 3}
         expect(response).to have_http_status(200)
-        expect(JSON.parse(response.body)).to eq({"main_board"=>["None", "D", "None", "C"], "side_board"=>["King", "King", "Queen", "None", "None", "None"], "game_over"=>true})
+        expect(JSON.parse(response.body)).to eq({"main_board"=>["None", "D", "None", "C"], "side_drawers"=>["King", "King", "Queen", "None", "None", "None"], "game_over"=>true})
 
         game.reload
         expect(game.turn).to eq(player2.id)
         # Boards have been inverted 
-        expect(game.state).to eq('{"stage":"GameOver","main_board":["C","None","D","None"],"side_board":["None","None","None","Queen","King","King"],"winner_uniq_pub_name":"p1"}')
+        expect(game.state).to eq('{"stage":"GameOver","main_board":["C","None","D","None"],"side_drawers":["None","None","None","Queen","King","King"],"winner_uniq_pub_name":"p1"}')
         
       end
     end

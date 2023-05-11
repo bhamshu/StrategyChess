@@ -152,7 +152,7 @@ class Api::V1::PlayerController < ApplicationController
             state = JSON.parse(game.state, symbolize_names: false)
             p state
             state["main_board"] = state["main_board"].reverse
-            state["side_board"] = state["side_board"].reverse
+            state["side_drawers"] = state["side_drawers"].reverse
             render json: {state: state}
         end
     end
@@ -191,12 +191,12 @@ class Api::V1::PlayerController < ApplicationController
         hash_state["main_board"][init_index] = "None"
 
         unless final_index_piece == "None"
-            first_none_idx = hash_state["side_board"].find_index("None")
-            hash_state["side_board"][first_none_idx] = final_index_piece
+            first_none_idx = hash_state["side_drawers"].find_index("None")
+            hash_state["side_drawers"][first_none_idx] = final_index_piece
         end
 
         hash_state["main_board"] = hash_state["main_board"].reverse
-        hash_state["side_board"] = hash_state["side_board"].reverse
+        hash_state["side_drawers"] = hash_state["side_drawers"].reverse
 
         game_over = false
         if final_index_piece == "King"
@@ -217,7 +217,7 @@ class Api::V1::PlayerController < ApplicationController
         # pusher is just for animation.
         Utils.send_pusher_msg_to_player(partner.id, "opponent_moved", {"init_index": init_index, "final_index": final_index, "game_over": game_over})
 
-        render json: {main_board: hash_state["main_board"].reverse, side_board: hash_state["side_board"].reverse, "game_over": game_over}, status: 200
+        render json: {main_board: hash_state["main_board"].reverse, side_drawers: hash_state["side_drawers"].reverse, "game_over": game_over}, status: 200
     end
 
     def register_new_game_for_player

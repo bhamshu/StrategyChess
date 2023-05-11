@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::PlayerController, type: :controller do
     describe "POST #accept_request_and_start_game" do
-      let(:p1_init_state) {{"stage":Constants::PartnerSelection, "main_board":["A", "B", "None", "None"], "side_board":["None"]}.to_json}
-      let(:p2_init_state) {{"stage":Constants::PartnerSelection, "main_board":["C", "D", "None", "None"], "side_board":["None"]}.to_json}
+      let(:p1_init_state) {{"stage":Constants::PartnerSelection, "main_board":["A", "B", "None", "None"], "side_drawers":["None"]}.to_json}
+      let(:p2_init_state) {{"stage":Constants::PartnerSelection, "main_board":["C", "D", "None", "None"], "side_drawers":["None"]}.to_json}
       let(:uniq_pub_name) { 'test_player' }
       let(:partner_pub_name) { 'partner_player' }
       let!(:player1game) { Game.create(state: p1_init_state) }
