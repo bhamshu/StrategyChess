@@ -146,10 +146,16 @@ class Api::V1::PlayerController < ApplicationController
         id = params[:id]
         me = Player.find_by(id: id)
         game = Game.find_by(id: me.games_id)
-        # TODO: turn could also be part of game state?
-        render json: {turn: game.turn, state: JSON.parse(game.state)}
+        if game.turn == me.id
+            render json: {state: JSON.parse(game.state)}
+        else
+            state = JSON.parse(game.state, symbolize_names: false)
+            p state
+            state["main_board"] = state["main_board"].reverse
+            state["side_board"] = state["side_board"].reverse
+            render json: {state: state}
+        end
     end
-
 
     def make_a_move
         my_id = params[:id]

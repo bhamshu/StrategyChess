@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::PlayerController, type: :controller do
     describe "POST #accept_request_and_start_game" do
-      let(:p1_init_state) {{"stage":Constants::PartnerSelection, "main_board":["A", "B", "None", "None"]}.to_json}
-      let(:p2_init_state) {{"stage":Constants::PartnerSelection, "main_board":["C", "D", "None", "None"]}.to_json}
+      let(:p1_init_state) {{"stage":Constants::PartnerSelection, "main_board":["A", "B", "None", "None"], "side_board":["None"]}.to_json}
+      let(:p2_init_state) {{"stage":Constants::PartnerSelection, "main_board":["C", "D", "None", "None"], "side_board":["None"]}.to_json}
       let(:uniq_pub_name) { 'test_player' }
       let(:partner_pub_name) { 'partner_player' }
       let!(:player1game) { Game.create(state: p1_init_state) }
@@ -46,7 +46,23 @@ RSpec.describe Api::V1::PlayerController, type: :controller do
           expect(game_state["stage"]).to eq(Constants::GamePlay)
         end
       end
-  
+      describe "GET #get_my_game_state" do
+        context "when accepting a request for a valid game" do
+          before do
+            post :accept_request_and_start_game, params: { id: player1.id, partner_pub_name: player2.uniq_pub_name }
+            get :get_my_game_state, params: { id: player1.id, partner_pub_name: player2.uniq_pub_name }
+            @player1response = response
+            get :get_my_game_state, params: { id: player2.id, partner_pub_name: player2.uniq_pub_name }
+            @player2response = response
+          end
+          it "gives the correct game state" do 
+            p2mainboard = JSON.parse(@player2response.body)["state"]["main_board"]
+            p1mainboard = JSON.parse(@player1response.body)["state"]["main_board"]
+            expect(p2mainboard).to eq(p1mainboard.reverse)
+          end
+        end
+      end
+
       context "when accepting a request for a game that has already started" do
         before do
           player2game.state = { "stage" => Constants::GamePlay }.to_json
