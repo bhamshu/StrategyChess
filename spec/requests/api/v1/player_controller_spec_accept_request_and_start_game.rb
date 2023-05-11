@@ -2,16 +2,13 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::PlayerController, type: :controller do
     describe "POST #accept_request_and_start_game" do
-      let!(:init_state_partnering ) {
-        state = Constants::INIT_STATE
-        state["stage"] = Constants::PartnerSelection
-        state
-      }
+      let(:p1_init_state) {{"stage":Constants::PartnerSelection, "main_board":["A", "B", "None", "None"]}.to_json}
+      let(:p2_init_state) {{"stage":Constants::PartnerSelection, "main_board":["C", "D", "None", "None"]}.to_json}
       let(:uniq_pub_name) { 'test_player' }
       let(:partner_pub_name) { 'partner_player' }
-      let!(:player1game) { Game.create(state: init_state_partnering.to_json) }
+      let!(:player1game) { Game.create(state: p1_init_state) }
       let!(:player1) { Player.create(games_id: player1game.id, uniq_pub_name:uniq_pub_name) }
-      let!(:player2game) { Game.create(state: init_state_partnering.to_json) }
+      let!(:player2game) { Game.create(state: p2_init_state) }
       let!(:player2) { Player.create(games_id: player2game.id, uniq_pub_name:partner_pub_name) }
 
       let!(:active_request) { ActiveRequest.create(from_id: player2.id, to_id: player1.id) }
@@ -45,6 +42,7 @@ RSpec.describe Api::V1::PlayerController, type: :controller do
         it "renders the game state" do
           expect(response).to have_http_status(:success)
           game_state = JSON.parse(response.body)["state"]
+          expect(game_state["main_board"]).to eq(JSON.parse(p2_init_state)["main_board"] + JSON.parse(p1_init_state)["main_board"].reverse)
           expect(game_state["stage"]).to eq(Constants::GamePlay)
         end
       end

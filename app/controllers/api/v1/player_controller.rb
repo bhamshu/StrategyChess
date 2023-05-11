@@ -120,7 +120,7 @@ class Api::V1::PlayerController < ApplicationController
         end
         
         # Now we will delete my game and switch over to partner's game
-        partner_game_state["main_board"] += my_game_state["main_board"] 
+        partner_game_state["main_board"] += my_game_state["main_board"].reverse 
         # TODO: assert that side drawers are null at this point
         partner_game.state = partner_game_state.to_json
         partner_game.turn = partner.id
