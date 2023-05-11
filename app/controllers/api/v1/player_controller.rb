@@ -89,7 +89,10 @@ class Api::V1::PlayerController < ApplicationController
         my_id = params[:id]
         partner_pub_name = params[:partner_pub_name]
         partner = Player.find_by(uniq_pub_name: partner_pub_name)
-        unless ActiveRequest.where(from: partner.id, to: my_id).empty?
+        if not partner
+            render json: {error: "No player found with this name."}, status: 404
+        end
+        if ActiveRequest.where(from_id: partner.id, to_id: my_id).empty?
             # the other player hasn't sent a request, how can you accept
             render json: {error: "Player has not sent a request. Can't accept. Send them a request if you want to play with them."}, status: 403
             return
@@ -109,6 +112,7 @@ class Api::V1::PlayerController < ApplicationController
         # This check is down here because it's frivolous - frontend won't
         # make this request. It's just an extra check for malicious use
         # Above we have checks which are way more likely to occur
+
         unless my_game_state["stage"] == Constants::PartnerSelection
             # the other player hasn't sent a request, how can you accept
             render json: {error: "Go strategise, or play with your partner depending on your stage which is " + my_game_state["stage"]}, status: 403
@@ -124,17 +128,17 @@ class Api::V1::PlayerController < ApplicationController
         me.games_id = partner_game.id 
 
         # TODO: These should be atomic.
-        ActiveRequest.where(:from => [my_id, partner.id], :to => [my_id, partner.id]).destroy
+        ActiveRequest.where(:from_id => [my_id, partner.id], :to_id => [my_id, partner.id]).destroy_all
         partner.save
         me.save
         partner_game.save
         Game.destroy(my_old_game_id)
 
-        Utils.send_pusher_msg_to_player(partner_id, "challenge_accepted", me.uniq_pub_name)
+        Utils.send_pusher_msg_to_player(partner.id, "challenge_accepted", me.uniq_pub_name)
 
         turn_str = Utils.get_turn_str(me.id, partner_game.turn)
 
-        render json: {uniq_pub_name: player.uniq_pub_name, partner_pub_name: partner.uniq_pub_name, state: JSON.parse(partner_game_state), turn: turn_str}
+        render json: {uniq_pub_name: me.uniq_pub_name, partner_pub_name: partner.uniq_pub_name, state: partner_game_state, turn: turn_str}
     end
 
     def get_my_game_state
