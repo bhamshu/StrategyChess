@@ -159,28 +159,52 @@ class Api::V1::PlayerController < ApplicationController
 
     def make_a_move
         my_id = params[:id]
-        init_index = params[:init_index]
-        final_index = params[:final_index]
+        init_index = params[:init_index].to_i
+        final_index = params[:final_index].to_i
 
-        me = Player.find_by(id: id)
+        me = Player.find_by(id: my_id)
         game = Game.find_by(id: me.games_id)
 
         unless game.turn == me.id
             render json: { error: 'Not my turn' }, status: 403
+            return 
+        end
+
+        if init_index<0 or init_index>63 or final_index<0 or final_index>63
+            render json: { error: 'Invalid move' }, status: 403
+            return 
         end
 
         # TODO: Check if the move is valid
-        # TODO: Update game state
+        # TODO: allow people to invent pieces by writing custom validation functions
         
         # Reverse the board
         hash_state = JSON.parse(game.state)
 
         unless hash_state["stage"] == Constants::GamePlay
             render json: { error: "Game not in play, can't move" }, status: 403
+            return 
+        end
+
+        final_index_piece = hash_state["main_board"][final_index]
+        hash_state["main_board"][final_index] =  hash_state["main_board"][init_index]
+        hash_state["main_board"][init_index] = "None"
+
+        unless final_index_piece == "None"
+            first_none_idx = hash_state["side_board"].find_index("None")
+            hash_state["side_board"][first_none_idx] = final_index_piece
         end
 
         hash_state["main_board"] = hash_state["main_board"].reverse
         hash_state["side_board"] = hash_state["side_board"].reverse
+
+        game_over = false
+        if final_index_piece == "King"
+            game_over = true
+            hash_state["stage"] = Constants::GameOver
+            hash_state["winner_uniq_pub_name"] = me.uniq_pub_name
+        end
+
         game.state = hash_state.to_json
 
         partner = Player.where.not(id: me.id).find_by(games_id: game.id)
@@ -188,11 +212,12 @@ class Api::V1::PlayerController < ApplicationController
         game.turn = partner.id
         game.save
 
-        # TODO: Check if game over
-
         # Partner may be able to calculate new board state on frontend 
-        # but they should fetch it using get_my_game_state
-        Utils.send_pusher_msg_to_player(partner.id, "opponent_moved", {"init_index": init_index, "final_index": final_index})
+        # but they should fetch it using get_my_game_state, The info in 
+        # pusher is just for animation.
+        Utils.send_pusher_msg_to_player(partner.id, "opponent_moved", {"init_index": init_index, "final_index": final_index, "game_over": game_over})
+
+        render json: {main_board: hash_state["main_board"].reverse, side_board: hash_state["side_board"].reverse, "game_over": game_over}, status: 200
     end
 
     def register_new_game_for_player
