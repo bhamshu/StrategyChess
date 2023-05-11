@@ -1,3 +1,23 @@
+# Navigating the Codebase
+
+See the api endpoints at `config/routes.rb`), and the corresponding methods at
+`app/controllers/api`. APIs are arranged roughly in the order the players will call them, which in turn depends upon the stages of the play explained below.
+
+Find the models in `app/models/` (and to see the corresponding schemas, refer `db/schema.rb`). 
+
+Finally, take a look at the tests in `spec/requests/api/`.
+
+To **Run the Project**, go to the root directory and simply run
+```
+docker-compose up --build
+```
+
+To **Run Tests**, go to the root directory and simply run
+```
+docker-compose run -e "RAILS_ENV=test" web bundle exec rspec ./spec/requests/api/
+```
+
+
 # Stages of the Play
 
 **EnterName** 
