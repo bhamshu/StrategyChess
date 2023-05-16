@@ -1,3 +1,5 @@
+See Frontend repository [here](https://github.com/bhamshu/FrontendStrategyChess/)
+
 # Navigating the Codebase
 
 See the api endpoints at `config/routes.rb`), and the corresponding methods at
