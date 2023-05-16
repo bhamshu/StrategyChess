@@ -1,4 +1,4 @@
-See Frontend repository [here](https://github.com/bhamshu/FrontendStrategyChess/)
+See Frontend repository [here](https://github.com/bhamshu/FrontendStrategyChess/), play [here](http://ec2-3-95-161-63.compute-1.amazonaws.com:3001/)
 
 # Navigating the Codebase
 
@@ -45,4 +45,13 @@ docker-compose run -e "RAILS_ENV=test" web bundle exec rspec ./spec/requests/api
 
 8.  If the king is dead or a player resigns, they both see the name of winner.
 9.  In this game there are no en passant, castling, pawn promotion, draw rules or any other advanced rules.
+
+
+# TODOs
+* Highlight the initial and the final boxes when the other player moves.
+* Text chat between players. If it's not too costly to support, live audio chat would be awesome to have.
+* UI on mobile phones is terrible. Active players and active requests are going out of the screen. Fix that.
+* Every once in a while (low single digit percentage), the board state doesn't refresh. Look into it. If the issue persists, update board state every few seconds.
+* On hovering over a piece, the cursor that appears is the "text edit" cursor. It should be a grab one or a pointer one (See [here](https://www.w3schools.com/cssref/tryit.php?filename=trycss_cursor))
+* Currently, the player is asked to enter a name again. What's worse, the old name can't be reused as it's considered as "taken by someone else". Fix this.
 
